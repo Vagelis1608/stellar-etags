@@ -1,0 +1,26 @@
+name: Build ATC_Paper.bin and upload artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: rm
+      run: rm -f ./Firmware/ATC_Paper.bin
+
+    - name: make
+      run: make -C Firmware all
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: ATC_Paper-${GITHUB_RUN_ID}.bin
+        path: ./Firmware/ATC_Paper.bin
+        error: ATC_Paper.bin Not Found!
+        compression-level: 9
