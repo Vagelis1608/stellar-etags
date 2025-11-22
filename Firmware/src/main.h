@@ -33,5 +33,9 @@
 #define NFC_CS		GPIO_PC6
 #define NFC_IRQ		GPIO_PC4
 
-
-
+typedef struct RemoteData {
+    uint8_t initd, temperature, localIP[4];
+    uint16_t totalram, freeram, load[3];
+    uint32_t updated;
+    char name[20], uptime[100], memunit[8];
+} remoteData;
