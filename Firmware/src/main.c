@@ -23,6 +23,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void irq_handler(void)
 	irq_blt_sdk_handler();
 }
 
+RAM remoteData remData;
+RAM bool remDataInit = true;
+
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {
 	blc_pm_select_internal_32k_crystal();
@@ -50,6 +53,21 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		user_init_normal ();
 	}	
     irq_enable();
+
+	// Initialize the Remote data
+	if ( remDataInit ) {
+		remData.temperature = 0;
+		remData.totalram = 0;
+		remData.freeram = 0;
+		remData.updated = 42;
+		for ( int i = 0; i < 3; i++ ) remData.load[i] = 0;
+		for ( int i = 0; i < 4; i++ ) remData.localIP[i] = 0;
+		sprintf(remData.name, "Not Connected");
+		sprintf(remData.memunit, "Bs");
+		sprintf(remData.uptime, "down");
+		remDataInit = false;
+	}
+
 	while (1) {
 		main_loop ();
 	}

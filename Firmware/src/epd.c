@@ -22,11 +22,14 @@ extern const uint8_t ucMirror[];
 #include "font16zh.h"
 #include "font30.h"
 
+extern remoteData remData;
+RAM uint32_t remLastUpdate = 0;
+
 RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296
 const char *epd_model_string[] = {"NC", "BW213", "BWR213", "BWR154", "213ICE", "BWR296"};
 RAM uint8_t epd_update_state = 0;
 
-RAM uint8_t epd_scene = 1;
+RAM uint8_t epd_scene = 3;
 RAM uint8_t epd_wait_update = 0;
 
 RAM uint8_t hour_refresh = 100;
@@ -47,7 +50,6 @@ void set_EPD_model(uint8_t model_nr)
     epd_model = model_nr;
 }
 
-// With this we can force a display if it wasnt detected correctly
 void set_EPD_scene(uint8_t scene)
 {
     epd_scene = scene;
@@ -319,6 +321,37 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, full_or_partial);
 }
 
+void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
+    if ( remLastUpdate >= remData.updated ) return;
+    remLastUpdate = remData.updated;
+
+    uint16_t battery_level;
+
+    epd_clear();
+
+    obdCreateVirtualDisplay(&obd, epd_width, epd_height, epd_temp);
+    obdFill(&obd, 0, 0); // fill with white
+
+    char buff[100];
+    battery_level = get_battery_level(battery_mv);
+    sprintf(buff, "%s", remData.name );
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 17, (char *)buff, 1);
+    obdRectangle(&obd, 5, 19, 295, 21, 1, 1);
+    sprintf(buff, "RAM: %u.%u free of %u.%u %s", remData.freeram/10, remData.freeram%10, remData.totalram/10, remData.totalram%10, remData.memunit );
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 39, (char *)buff, 1);
+    sprintf(buff, "CPU: %u.%u, %u.%u, %u.%u #Temp: %u'C", remData.load[0]/10, remData.load[0]%10, remData.load[1]/10, remData.load[1]%10, remData.load[2]/10, remData.load[2]%10, remData.temperature );
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 57, (char *)buff, 1);
+    sprintf(buff, "Local IP: %u.%u.%u.%u", remData.localIP[0], remData.localIP[1], remData.localIP[2], remData.localIP[3] );
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 74, (char *)buff, 1);
+    sprintf(buff, "%s", remData.uptime );
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 95, (char *)buff, 1);
+    obdRectangle(&obd, 1, 98, 295, 102, 1, 1);
+    sprintf(buff, "V16_%02X%02X%02X %s - Batt: %d%%", mac_public[2], mac_public[1], mac_public[0], epd_model_string[epd_model], battery_level);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 120, (char *)buff, 1);
+    FixBuffer(epd_temp, epd_buffer, epd_width, epd_height);
+    EPD_Display(epd_buffer, NULL, epd_width * epd_height / 8, full_or_partial);
+}
+
 _attribute_ram_code_ void epd_display_char(uint8_t data)
 {
     int i;
@@ -371,6 +404,9 @@ void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature
             break;
         case 2:
             update_time_scene(_time, battery_mv, temperature, epd_display_time_with_date);
+            break;
+        case 3:
+            update_time_scene(_time, battery_mv, temperature, epd_display_remote);
             break;
         default:
             break;

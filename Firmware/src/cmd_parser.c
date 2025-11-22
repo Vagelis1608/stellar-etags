@@ -4,11 +4,14 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
+#include <stdio.h>
 
 #include "etime.h"
 #include "flash.h"
 
 extern settings_struct settings;
+extern remoteData remData;
+extern uint32_t current_unix_time;
 
 #define testPin GPIO_PD3
 void cmd_parser(void * p){
@@ -70,5 +73,50 @@ void cmd_parser(void * p){
 	}
 	else if(inData == 0xE2){// force set an EPD scene
 		set_EPD_wait_flush();
+	} else if ( inData == 0xEA ) { // Remote memunit ( 1 byte ) and name, 18 ASCII chars / 18 bytes
+		for ( int i = 2; i < 20; i++ ) remData.name[i-2] = req->dat[i];
+
+		switch ( (uint8_t)req->dat[1] ) {
+			case 3:
+				sprintf( remData.memunit, "GBs" );
+				break;
+			case 2:
+				sprintf( remData.memunit, "MBs" );
+				break;
+			case 1:
+				sprintf( remData.memunit, "KBs" );
+				break;
+			default: // 0 - Bytes
+				sprintf( remData.memunit, "Bs" );
+				break;
+		}
+	} else if ( inData == 0xEB ) {  // Remote data
+		// Remote: Temperature byte 1, localIP (byte 2).(byte 3).(byte 4).(byte 5), 
+		// 		totalram (byte 6)(byte 7), freeram (byte 8)(byte 9), loads bytes 10-15, uptime bytes 16-19
+		remData.temperature = (uint8_t)req->dat[1];
+
+		remData.localIP[0] = (uint8_t)req->dat[2];
+		remData.localIP[1] = (uint8_t)req->dat[3];
+		remData.localIP[2] = (uint8_t)req->dat[4];
+		remData.localIP[3] = (uint8_t)req->dat[5];
+
+		remData.totalram = (req->dat[6]<<8) + req->dat[7];
+		remData.freeram = (req->dat[8]<<8) + req->dat[9];
+
+		remData.load[0] = (req->dat[10]<<8) + req->dat[11];
+		remData.load[1] = (req->dat[12]<<8) + req->dat[13];
+		remData.load[2] = (req->dat[14]<<8) + req->dat[15];
+
+		uint32_t upmins =  (req->dat[16]<<24) + (req->dat[17]<<16) + (req->dat[18]<<8) + req->dat[19];
+		if ( upmins < 60 ) {
+			sprintf( remData.uptime, "up: %u mins", upmins );
+		} else if ( upmins < 1440 ) {
+			sprintf( remData.uptime, "up: %u hours, %u mins", upmins/60, upmins%60 );
+		} else {
+			uint16_t hours = upmins/60;
+			sprintf( remData.uptime, "up: %u days, %u hours, %u mins", hours/24, hours%24, upmins%60 );
+		}
+
+		remData.updated = current_unix_time;
 	}
 }
