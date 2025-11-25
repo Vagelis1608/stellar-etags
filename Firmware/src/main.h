@@ -39,3 +39,5 @@ typedef struct RemoteData {
     uint32_t updated;
     char name[20], uptime[100], memunit[8];
 } remoteData;
+
+void remoteDataReset();
