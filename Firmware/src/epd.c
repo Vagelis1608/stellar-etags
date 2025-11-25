@@ -30,6 +30,7 @@ const char *epd_model_string[] = {"NC", "BW213", "BWR213", "BWR154", "213ICE", "
 RAM uint8_t epd_update_state = 0;
 
 RAM uint8_t epd_scene = 3;
+RAM uint8_t epd_scene_on_screen = 3;
 RAM uint8_t epd_wait_update = 0;
 
 RAM uint8_t hour_refresh = 100;
@@ -322,7 +323,7 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
 }
 
 void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
-    if ( remLastUpdate >= remData.updated ) return;
+    if ( remLastUpdate >= remData.updated && epd_scene_on_screen == 3 && full_or_partial == 0 ) return;
     remLastUpdate = remData.updated;
 
     uint16_t battery_level;
@@ -411,6 +412,7 @@ void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature
         default:
             break;
     }
+    epd_scene_on_screen = epd_scene;
 }
 
 void epd_display_time_with_date(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
