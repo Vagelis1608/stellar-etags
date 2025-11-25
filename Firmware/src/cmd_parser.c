@@ -74,7 +74,11 @@ void cmd_parser(void * p){
 	else if(inData == 0xE2){// force set an EPD scene
 		set_EPD_wait_flush();
 	} else if ( inData == 0xEA ) { // Remote memunit ( 1 byte ) and name, 18 ASCII chars / 18 bytes
-		for ( int i = 2; i < 20; i++ ) remData.name[i-2] = req->dat[i];
+		for ( int i = 0; i < 20; i++ ) remData.name[i] = 0x00; // Clear old name
+
+		for ( int i = 2; i < 20; i++ ) {
+			remData.name[i-2] = req->dat[i];
+		}
 
 		switch ( (uint8_t)req->dat[1] ) {
 			case 3:
@@ -118,5 +122,13 @@ void cmd_parser(void * p){
 		}
 
 		remData.updated = current_unix_time;
+	} else if ( inData == 0xED ) { // Reset Remote Data
+		remoteDataReset();
+	} else if ( inData == 0xEF ) { // Reboot
+		analog_write(SYS_DEEP_ANA_REG, analog_read(SYS_DEEP_ANA_REG) & (~SYS_NEED_REINIT_EXT32K));
+		REG_ADDR8(0x6f) = 0x20;
+		while (1)
+		{
+		}
 	}
 }
