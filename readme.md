@@ -1,4 +1,9 @@
-## hanshow stellar L3N ESL firmware
+## hanshow stellar L3N ESL firmware, modified to display info from a Remote device
+
+Example/Basic program to upload the data with: https://github.com/Vagelis1608/esl-etag-raspbian
+
+
+
 ## This page is translated via Google translate, with minor manual fixes
 
 
