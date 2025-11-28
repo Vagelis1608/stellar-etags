@@ -4,6 +4,8 @@ Example/Basic program to upload the data with: https://github.com/Vagelis1608/es
 
 Currently supported models are the L3N@ and Pro-266R-N
 
+Use their respective branches.
+
 
 
 ## This page is translated via Google translate, with minor manual fixes
