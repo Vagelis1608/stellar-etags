@@ -1,6 +1,6 @@
 #pragma once
 #include "etime.h"
-#define epd_height 128
+#define epd_height 160
 #define epd_width 296
 #define epd_buffer_size ((epd_height/8) * epd_width)
 

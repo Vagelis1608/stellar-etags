@@ -9,6 +9,7 @@
 #include "epd_bw_213_ice.h"
 //#include "epd_bwr_154.h"
 #include "epd_bwr_296.h"
+#include "epd_bwr_h160.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
@@ -25,7 +26,7 @@ extern const uint8_t ucMirror[];
 extern remoteData remData;
 RAM uint32_t remLastUpdate = 0;
 
-RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296
+RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296, 6 BWR296x156
 const char *epd_model_string[] = {"NC", "BW213", "R213", "R154", "213ICE", "R296"};
 RAM uint8_t epd_update_state = 0;
 
@@ -41,7 +42,7 @@ RAM uint8_t epd_temperature_is_read = 0;
 RAM uint8_t epd_temperature = 0;
 
 RAM uint8_t epd_buffer[epd_buffer_size];
-RAM uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
+uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
 OBDISP obd;                        // virtual display structure
 TIFFIMAGE tiff;
 
