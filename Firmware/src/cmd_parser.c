@@ -74,10 +74,12 @@ void cmd_parser(void * p){
 	else if(inData == 0xE2){// force set an EPD scene
 		set_EPD_wait_flush();
 	} else if ( inData == 0xEA ) { // Remote memunit ( 1 byte ) and name, 18 ASCII chars / 18 bytes
-		for ( int i = 0; i < 20; i++ ) remData.name[i] = 0x00; // Clear old name
+		for ( int i = 0; i < 38; i++ ) remData.name[i] = 0x00; // Clear old name
 
-		for ( int i = 2; i < 20; i++ ) {
-			remData.name[i-2] = req->dat[i];
+		int j = 0;
+		if ( req->dat[1] == 0x42 ) j = 18;
+		for ( int i = 0; i < 18; i++ ) {
+			remData.name[i+j] = req->dat[i+2];
 		}
 
 		switch ( (uint8_t)req->dat[1] ) {
@@ -90,7 +92,7 @@ void cmd_parser(void * p){
 			case 1:
 				sprintf( remData.memunit, "KBs" );
 				break;
-			default: // 0 - Bytes
+			case 0:
 				sprintf( remData.memunit, "Bs" );
 				break;
 		}

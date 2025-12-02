@@ -26,7 +26,7 @@ extern remoteData remData;
 RAM uint32_t remLastUpdate = 0;
 
 RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296
-const char *epd_model_string[] = {"NC", "BW213", "BWR213", "BWR154", "213ICE", "BWR296"};
+const char *epd_model_string[] = {"NC", "BW213", "R213", "R154", "213ICE", "R296"};
 RAM uint8_t epd_update_state = 0;
 
 RAM uint8_t epd_scene = 3;

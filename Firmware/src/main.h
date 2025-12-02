@@ -37,7 +37,7 @@ typedef struct RemoteData {
     uint8_t initd, temperature, localIP[4];
     uint16_t totalram, freeram, load[3];
     uint32_t updated;
-    char name[20], uptime[100], memunit[8];
+    char name[38], uptime[100], memunit[8];
 } remoteData;
 
 void remoteDataReset();

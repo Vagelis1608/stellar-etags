@@ -33,7 +33,8 @@ void remoteDataReset() {
 	remData.updated = 42;
 	for ( int i = 0; i < 3; i++ ) remData.load[i] = 0;
 	for ( int i = 0; i < 4; i++ ) remData.localIP[i] = 0;
-	sprintf(remData.name, "Not Connected"+0x00);
+	for ( int i = 0; i < 38; i++ ) remData.name[i] = 0x00;
+	sprintf(remData.name, "Not Connected");
 	sprintf(remData.memunit, "Bs");
 	sprintf(remData.uptime, "down");
 	remDataInit = false;
