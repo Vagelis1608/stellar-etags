@@ -25,9 +25,10 @@ extern const uint8_t ucMirror[];
 
 extern remoteData remData;
 RAM uint32_t remLastUpdate = 0;
+extern settings_struct settings;
 
 RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296, 6 BWR296x156
-const char *epd_model_string[] = {"NC", "BW213", "R213", "R154", "213ICE", "R296"};
+const char *epd_model_string[] = {"NC", "BW213", "R213", "R154", "213ICE", "R296", "Rh160"};
 RAM uint8_t epd_update_state = 0;
 
 RAM uint8_t epd_scene = 3;
@@ -99,7 +100,8 @@ _attribute_ram_code_ void EPD_detect_model(void)
     {
         epd_model = 1;
     }
-    epd_model = 5; // FIXME: only for bwr_296
+    epd_model = settings.epd_model; 
+    if ( epd_model < 5 ) epd_model = 5; // FIXME: only for bwr_296 or bwr_296x156
     EPD_POWER_OFF();
 }
 
@@ -127,7 +129,7 @@ _attribute_ram_code_ uint8_t EPD_read_temp(void)
         epd_temperature = EPD_BWR_213_read_temp();
 //    else if (epd_model == 3)
 //        epd_temperature = EPD_BWR_154_read_temp();
-    else if (epd_model == 4 || epd_model == 5)
+    else if ( epd_model == 4 || epd_model == 5 || epd_model == 6 )
         epd_temperature = EPD_BW_213_ice_read_temp();
 
     EPD_POWER_OFF();
@@ -163,6 +165,8 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
     else if (epd_model == 5)
         epd_temperature = EPD_BWR_296_Display_BWR(image, red_image, size, full_or_partial);
         //epd_temperature = EPD_BWR_296_Display(image, size, full_or_partial);
+    else if (epd_model == 6)
+        epd_temperature = EPD_BWR_h160_Display_BWR(image, red_image, size, full_or_partial);
 
     epd_temperature_is_read = 1;
     epd_update_state = 1;
@@ -179,7 +183,7 @@ _attribute_ram_code_ void epd_set_sleep(void)
         EPD_BWR_213_set_sleep();
 //    else if (epd_model == 3)
 //        EPD_BWR_154_set_sleep();
-    else if (epd_model == 4 || epd_model == 5)
+    else if ( epd_model == 4 || epd_model == 5 || epd_model == 6 )
         EPD_BW_213_ice_set_sleep();
 
     EPD_POWER_OFF();
@@ -301,7 +305,12 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
         resolution_w = 296;
         resolution_h = 128;
     }
-
+    else if (epd_model == 6)
+    {
+        resolution_w = 296;
+        resolution_h = 156;
+    }
+    
     epd_clear();
 
     obdCreateVirtualDisplay(&obd, resolution_w, resolution_h, epd_temp);
@@ -318,7 +327,9 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     sprintf(buff, "-----%d'C-----", EPD_read_temp());
     obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 95, (char *)buff, 1);
     sprintf(buff, "Battery %dmV  %d%%", battery_mv, battery_level);
-    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
+    int sp = 0;
+    if ( epd_model == 6 ) sp = 26; // Move last line to bottom of h160
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120+sp, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
     EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, full_or_partial);
 }
@@ -347,9 +358,11 @@ void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t tem
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 74, (char *)buff, 1);
     sprintf(buff, "%s", remData.uptime );
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 5, 95, (char *)buff, 1);
-    obdRectangle(&obd, 1, 98, 295, 102, 1, 1);
+    int sp = 0;
+    if ( epd_model == 6 ) sp = 26; // Move last line to bottom of h160
+    obdRectangle(&obd, 1, 98+sp, 295, 102+sp, 1, 1);
     sprintf(buff, "V16_%02X%02X%02X %s - Batt: %d%%", mac_public[2], mac_public[1], mac_public[0], epd_model_string[epd_model], battery_level);
-    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 120, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 120+sp, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer, epd_width, epd_height);
     EPD_Display(epd_buffer, NULL, epd_width * epd_height / 8, full_or_partial);
 }
