@@ -42,15 +42,28 @@ const char *BLE_conn_string[] = {"BLE 0", "BLE 1"};
 RAM uint8_t epd_temperature_is_read = 0;
 RAM uint8_t epd_temperature = 0;
 
+RAM uint32_t bufferSize = 0;
 RAM uint8_t epd_buffer[epd_buffer_size];
 uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
 OBDISP obd;                        // virtual display structure
 TIFFIMAGE tiff;
 
+void set_buffSize () {
+    int resolution_w = 296, resolution_h = 128;
+
+    if (epd_model == 6) {
+        resolution_w = 296;
+        resolution_h = 160;
+    }
+
+    bufferSize = resolution_w * resolution_h / 8;
+}
+
 // With this we can force a display if it wasnt detected correctly
 void set_EPD_model(uint8_t model_nr)
 {
     epd_model = model_nr;
+    set_buffSize();
 }
 
 void set_EPD_scene(uint8_t scene)
@@ -263,7 +276,7 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     TIFF_setDrawParameters(&tiff, 65536, TIFF_PIXEL_1BPP, 0, 0, 250, 122, NULL);
     TIFF_decode(&tiff);
     TIFF_close(&tiff);
-    EPD_Display(epd_buffer, NULL, epd_buffer_size, 1);
+    EPD_Display(epd_buffer, NULL, bufferSize, 1);
 }
 
 extern uint8_t mac_public[6];
@@ -308,7 +321,7 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     else if (epd_model == 6)
     {
         resolution_w = 296;
-        resolution_h = 156;
+        resolution_h = 160;
     }
     
     epd_clear();
@@ -331,7 +344,7 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     if ( epd_model == 6 ) sp = 26; // Move last line to bottom of h160
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120+sp, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
-    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, full_or_partial);
+    EPD_Display(epd_buffer, NULL, bufferSize, full_or_partial);
 }
 
 void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
@@ -339,10 +352,15 @@ void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t tem
     remLastUpdate = remData.updated;
 
     uint16_t battery_level;
+    int resolution_w = 296, resolution_h = 128;
+    if (epd_model == 6) {
+        resolution_w = 296;
+        resolution_h = 160;
+    }
 
     epd_clear();
 
-    obdCreateVirtualDisplay(&obd, epd_width, epd_height, epd_temp);
+    obdCreateVirtualDisplay(&obd, resolution_w, resolution_h, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[100];
@@ -363,24 +381,24 @@ void epd_display_remote(struct date_time _time, uint16_t battery_mv, int16_t tem
     obdRectangle(&obd, 1, 98+sp, 295, 102+sp, 1, 1);
     sprintf(buff, "V16_%02X%02X%02X %s - Batt: %d%%", mac_public[2], mac_public[1], mac_public[0], epd_model_string[epd_model], battery_level);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 120+sp, (char *)buff, 1);
-    FixBuffer(epd_temp, epd_buffer, epd_width, epd_height);
-    EPD_Display(epd_buffer, NULL, epd_width * epd_height / 8, full_or_partial);
+    FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
+    EPD_Display(epd_buffer, NULL, bufferSize, full_or_partial);
 }
 
 _attribute_ram_code_ void epd_display_char(uint8_t data)
 {
     int i;
-    for (i = 0; i < epd_buffer_size; i++)
+    for (i = 0; i < bufferSize; i++)
     {
         epd_buffer[i] = data;
     }
-    EPD_Display(epd_buffer, NULL, epd_buffer_size, 1);
+    EPD_Display(epd_buffer, NULL, bufferSize, 1);
 }
 
 _attribute_ram_code_ void epd_clear(void)
 {
-    memset(epd_buffer, 0x00, epd_buffer_size);
-    memset(epd_temp, 0x00, epd_buffer_size);
+    memset(epd_buffer, 0x00, bufferSize);
+    memset(epd_temp, 0x00, bufferSize);
 }
 void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temperature, void (*scene)(struct date_time, uint16_t, int16_t,  uint8_t)) {
     // default scene: show default time, battery, ble address, temperature
@@ -413,6 +431,8 @@ void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temp
 }
 
 void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature) {
+	if ( bufferSize == 0 ) set_buffSize();
+
     switch(epd_scene) {
         case 1:
             update_time_scene(_time, battery_mv, temperature, epd_display);
@@ -431,10 +451,15 @@ void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature
 
 void epd_display_time_with_date(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
     uint16_t battery_level;
+    int resolution_w = 296, resolution_h = 128;
+    if (epd_model == 6) {
+        resolution_w = 296;
+        resolution_h = 160;
+    }
 
     epd_clear();
 
-    obdCreateVirtualDisplay(&obd, epd_width, epd_height, epd_temp);
+    obdCreateVirtualDisplay(&obd, resolution_w, resolution_h, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[100];
@@ -490,7 +515,7 @@ void epd_display_time_with_date(struct date_time _time, uint16_t battery_mv, int
     }
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16_zh, 200, 122, (char *)buff, 1);
 
-    FixBuffer(epd_temp, epd_buffer, epd_width, epd_height);
+    FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
 
-    EPD_Display(epd_buffer, NULL, epd_width * epd_height / 8, full_or_partial);
+    EPD_Display(epd_buffer, NULL, bufferSize, full_or_partial);
 }

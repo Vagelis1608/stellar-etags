@@ -7,6 +7,7 @@
 #include "epd.h"
 #include "ble.h"
 
+extern uint8_t bufferSize;
 extern uint8_t epd_temp[epd_buffer_size];
 
 #define ASSERT_MIN_LEN(val, min_len) \
@@ -27,19 +28,21 @@ int epd_ble_handle_write(void *p)
 
 	ASSERT_MIN_LEN(payload_len, 1);
 
+	if ( bufferSize == 0 ) set_buffSize();
+
 	switch (payload[0])
 	{
 	// Clear EPD display.
 	case 0x00:
 	    ASSERT_MIN_LEN(payload_len, 2);
-		memset(epd_buffer, payload[1], epd_buffer_size);
-		memset(epd_temp, payload[1], epd_buffer_size);
+		memset(epd_buffer, payload[1], bufferSize);
+		memset(epd_temp, payload[1], bufferSize);
 		ble_set_connection_speed(40);
 		return 0;
 	// Push buffer to display.
 	case 0x01:
 		ble_set_connection_speed(200);
-		EPD_Display(epd_buffer, epd_temp, epd_buffer_size, payload[1]);
+		EPD_Display(epd_buffer, epd_temp, bufferSize, payload[1]);
 		return 0;
 	// Set byte_pos.
 	case 0x02:
@@ -48,7 +51,7 @@ int epd_ble_handle_write(void *p)
 		return 0;
 	// Write data to image buffer.
 	case 0x03:
-		if ((payload[2] << 8 | payload[3]) + payload_len - 4 >= epd_buffer_size + 1)
+		if ((payload[2] << 8 | payload[3]) + payload_len - 4 >= bufferSize + 1)
 		{
 		    out_buffer[0] = 0x00;
 		    out_buffer[1] = 0x00;
