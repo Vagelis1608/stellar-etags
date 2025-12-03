@@ -128,6 +128,8 @@ void cmd_parser(void * p){
 		remData.updated = current_unix_time;
 	} else if ( inData == 0xED ) { // Reset Remote Data
 		remoteDataReset();
+	} else if ( inData == 0xEE ) {
+		settings.time_dilation = (req->dat[1]<<8) + req->dat[2];
 	} else if ( inData == 0xEF ) { // Reboot
 		analog_write(SYS_DEEP_ANA_REG, analog_read(SYS_DEEP_ANA_REG) & (~SYS_NEED_REINIT_EXT32K));
 		REG_ADDR8(0x6f) = 0x20;

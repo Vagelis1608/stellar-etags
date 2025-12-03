@@ -5,8 +5,9 @@
 #include "drivers/8258/flash.h"
 #include "etime.h"
 #include "main.h"
+#include "flash.h"
 
-RAM uint16_t time_trime = 5000;// The higher the number the slower the time runs!, -32,768 to 32,767 
+// RAM uint16_t time_trime = 5000;// The higher the number the slower the time runs!, -32,768 to 32,767 
 RAM uint32_t one_second_trimmed = CLOCK_16M_SYS_TIMER_CLK_1S;
 RAM uint32_t current_unix_time;
 RAM struct date_time current_date = {0};
@@ -17,9 +18,11 @@ RAM uint8_t has_ever_reached[10] = {0};
 
 uint8_t map[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+extern settings_struct settings;
+
 _attribute_ram_code_ void init_time(void)
 {
-    one_second_trimmed += time_trime;
+    one_second_trimmed += settings.time_dilation;
     current_unix_time = 1709856857;
     current_date.tm_year = 2024;
     current_date.tm_month = 3;
