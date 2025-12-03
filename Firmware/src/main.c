@@ -34,8 +34,10 @@ void remoteDataReset() {
 	for ( int i = 0; i < 3; i++ ) remData.load[i] = 0;
 	for ( int i = 0; i < 4; i++ ) remData.localIP[i] = 0;
 	for ( int i = 0; i < 38; i++ ) remData.name[i] = 0x00;
+	for ( int i = 0; i < 100; i++ ) remData.uptime[i] = 0x00;
+	for ( int i = 0; i < 8; i++ ) remData.memunit[i] = 0x00;
 	sprintf(remData.name, "Not Connected");
-	sprintf(remData.memunit, "Bs");
+	sprintf(remData.memunit, "Bs"+0x00);
 	sprintf(remData.uptime, "down");
 	remDataInit = false;
 }
@@ -72,6 +74,8 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	if ( remDataInit ) {
 		remoteDataReset();
 	}
+
+	set_buffSize();
 
 	while (1) {
 		main_loop ();

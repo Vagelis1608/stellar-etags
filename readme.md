@@ -4,7 +4,7 @@ Example/Basic program to upload the data with: https://github.com/Vagelis1608/es
 
 Currently supported models are the L3N@ and Pro-266R-N
 
-Use their respective branches.
+Use the model setter in the Bluetooth OTA page to set the model after flashing the firmware.
 
 
 
