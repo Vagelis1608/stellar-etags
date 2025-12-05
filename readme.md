@@ -11,7 +11,7 @@ Use the model setter in the Bluetooth OTA page to set the model after flashing t
 ## This page is translated via Google translate, with minor manual fixes
 
 
-### Applicable model L3N@ (Note: only suitable for L3N@ 2.9-inch devices, other models of the original project may no longer be compatible)
+### Other models of the original project may no longer be compatible
 
 
 
