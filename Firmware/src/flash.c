@@ -39,6 +39,7 @@ void reset_settings_to_default(void)
 	settings.temp_alarm_point = 5;
 	settings.epd_model = 5;
 	settings.time_dilation = 5000;
+	settings.epdScene = 3;
 }
 
 void save_settings_to_flash(void)

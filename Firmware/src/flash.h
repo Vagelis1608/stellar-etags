@@ -15,6 +15,7 @@ typedef struct Settings_struct
 	uint8_t temp_alarm_point;//divide by ten for value
 	uint8_t epd_model;
 	int16_t time_dilation;
+	uint8_t epdScene;
 	uint8_t crc;// Needs to be at the last position otherwise the settings can not be validated on next boot!!!!
 } settings_struct;
 

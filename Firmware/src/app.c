@@ -28,6 +28,8 @@ _attribute_ram_code_ void user_init_normal(void)
     init_ble();
     init_flash();
     init_nfc();
+    
+    set_EPD_scene( settings.epdScene );
 
     // epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
     // epd_display(3334533);
