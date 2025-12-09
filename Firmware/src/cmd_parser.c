@@ -76,10 +76,10 @@ void cmd_parser(void * p){
 	else if(inData == 0xE2){// force set an EPD scene
 		set_EPD_wait_flush();
 	} else if ( inData == 0xEA ) { // Remote memunit ( 1 byte ) and name, 18 ASCII chars / 18 bytes
-		for ( int i = 0; i < 38; i++ ) remData.name[i] = 0x00; // Clear old name
-
 		int j = 0;
-		if ( req->dat[1] == 0x42 ) j = 18;
+		if ( req->dat[1] == 0x42 ) j = 18; // Name extension
+		else for ( int i = 0; i < 38; i++ ) remData.name[i] = 0x00; // Clear old name
+		
 		for ( int i = 0; i < 18; i++ ) {
 			remData.name[i+j] = req->dat[i+2];
 		}
